@@ -12,6 +12,8 @@ Not finished yet :/
 import pickle
 
 # Load the serialized model from disk
+model = None
+
 with open("best_model.pkl", "rb") as file:
     model = pickle.load(file)
 
@@ -31,11 +33,26 @@ df = spark.readStream\
   .option("subscribe", "topic_name")\
   .load()
 
+def get_age_category(number):
+  if number < 4:
+    return 0
+  if number >= 4 and number <= 8:
+    return 1
+  if number >= 8 and number <= 12:
+    return 2
+  if number >= 12:
+    return 3
+
+age_category_function = udf(get_age_category, IntegerType())
+
 # Define the custom function
 def process_batch(df, batch_id):
     # Your custom processing logic here
     print("Processing batch: ", batch_id)
-    predicted = model.predict(df)
+
+    df = df.withColumn("age_category", age_category_function(col("Age")))
+
+    predicted = model.predict(df.toPandas())
 
     spark_df = spark.createDataFrame(predicted)
 
