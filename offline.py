@@ -93,17 +93,21 @@ df.show(5)
 
 df_sample = df.select("age", "HighBP", "HvyAlcoholConsump", "PhysHlth", "Sex", "GenHlth", "HeartDiseaseorAttack")
 
+df_sample = df
+
+df_sample.head()
+
 X_train_offline, X_test_offline, y_train_offline, y_test_offline = train_test_split(df_sample.toPandas(), y_train, test_size=0.2, random_state=0)
 
 import pandas as pd 
 
 def train_model(model):
-  clf = tree.DecisionTreeClassifier() # defining decision tree classifier
+  clf = model # defining decision tree classifier
   clf=clf.fit(X_train_offline, y_train_offline) # train data on new data and new target
   y_pred = pd.Series(clf.predict(X_test_offline)) #  assign removed data as input
 
   f1_score = metrics.f1_score(y_pred, y_test_offline)
-  return f1_score
+  return f1_score, clf
 
 from sklearn.linear_model import LogisticRegression
 
@@ -116,3 +120,76 @@ train_model(tree.DecisionTreeClassifier())
 from sklearn.ensemble import RandomForestClassifier
 
 train_model(RandomForestClassifier())
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import make_scorer, f1_score
+from sklearn import tree
+
+# Define the model and parameters to be searched
+model = tree.DecisionTreeClassifier()
+param_grid = {'max_depth': [20, 30, 50, 100], 'max_features': [5, 10, 15, 20], 'criterion': ['entropy']}
+
+# Create the grid search object
+grid_search = GridSearchCV(model, param_grid, cv=5, scoring=make_scorer(f1_score))
+
+# Fit the grid search to the data
+grid_search.fit(X_train_offline, y_train_offline)
+
+# Get the best hyperparameters
+best_params = grid_search.best_params_
+
+grid_search.best_score_
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import make_scorer, f1_score
+
+
+def train_model_and_search_hyper_param(model, param_grid):
+  # Create the grid search object
+  grid_search = GridSearchCV(model, param_grid, cv=5, scoring=make_scorer(f1_score))
+
+  # Fit the grid search to the data
+  grid_search.fit(X_train_offline, y_train_offline)
+
+  # Get the best hyperparameters
+  best_params = grid_search.best_params_
+
+  y_pred = pd.Series(grid_search.best_estimator_.predict(X_test_offline)) #  assign removed data as input
+
+  f1_score_rez = metrics.f1_score(y_pred, y_test_offline)
+
+  print(best_params)
+  print(f1_score_rez)
+
+from sklearn import tree
+
+model = tree.DecisionTreeClassifier()
+param_grid = {'max_depth': [20, 30, 50, 100], 'max_features': [5, 10, 15, 20], 'criterion': ['entropy']}
+
+train_model_and_search_hyper_param(model, param_grid)
+
+from sklearn.ensemble import RandomForestClassifier
+
+model = RandomForestClassifier()
+param_grid = {'n_estimators': [5, 10, 25], 'max_depth': [20, 30, 50, 100], 'max_features': [5, 10, 15, 20], 'criterion': ['entropy']}
+
+train_model_and_search_hyper_param(model, param_grid)
+
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression()
+param_grid = {'C': [0.01, 10, 100], 'penalty': ["l1", "l2"], 'max_iter': [10,20]}
+
+train_model_and_search_hyper_param(model, param_grid)
+
+from sklearn import tree
+
+score, model = train_model(tree.DecisionTreeClassifier(criterion='entropy', max_depth=100, max_features=10))
+
+score
+
+import pickle
+
+# Serialize the model to disk
+with open("best_model.pkl", "wb") as file:
+    pickle.dump(model, file)
