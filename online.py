@@ -25,10 +25,10 @@ spark = SparkSession.builder.master("local[*]").getOrCreate()
 from pyspark.sql.streaming import DataStreamReader
 
 # Read the data from the Kafka topic as a streaming dataframe
-df = spark.readStream
-  .format("kafka")
-  .option("kafka.bootstrap.servers", "host1:port1,host2:port2")
-  .option("subscribe", "topic_name")
+df = spark.readStream\
+  .format("kafka")\
+  .option("kafka.bootstrap.servers", "host1:port1,host2:port2")\
+  .option("subscribe", "topic_name")\
   .load()
 
 # Define the custom function
@@ -39,17 +39,17 @@ def process_batch(df, batch_id):
 
     spark_df = spark.createDataFrame(predicted)
 
-    df.write
-      .format("kafka")
-      .option("kafka.bootstrap.servers", "host1:port1,host2:port2")
-      .option("topic", "predicted_results")
+    spark_df.write\
+      .format("kafka")\
+      .option("kafka.bootstrap.servers", "host1:port1,host2:port2")\
+      .option("topic", "predicted_results")\
       .save()
 
 # Start the streaming query with a trigger to process the new data every 10 seconds
-query = df
-  .writeStream
-  .foreachBatch(process_batch)
-  .trigger(processingTime="10 seconds")
+query = df\
+  .writeStream\
+  .foreachBatch(process_batch)\
+  .trigger(processingTime="10 seconds")\
   .start()
 
 query.awaitTermination()

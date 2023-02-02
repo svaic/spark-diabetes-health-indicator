@@ -123,25 +123,6 @@ train_model(RandomForestClassifier())
 
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import make_scorer, f1_score
-from sklearn import tree
-
-# Define the model and parameters to be searched
-model = tree.DecisionTreeClassifier()
-param_grid = {'max_depth': [20, 30, 50, 100], 'max_features': [5, 10, 15, 20], 'criterion': ['entropy']}
-
-# Create the grid search object
-grid_search = GridSearchCV(model, param_grid, cv=5, scoring=make_scorer(f1_score))
-
-# Fit the grid search to the data
-grid_search.fit(X_train_offline, y_train_offline)
-
-# Get the best hyperparameters
-best_params = grid_search.best_params_
-
-grid_search.best_score_
-
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import make_scorer, f1_score
 
 
 def train_model_and_search_hyper_param(model, param_grid):
